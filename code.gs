@@ -472,11 +472,12 @@ function formatAllSheets() {
 
     // Apply Banding (Alternating Row Colors) (PRD 6.1) for readability.
     if (sheet.getMaxRows() > 1) {
-      const dataRange = sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns());
+      // The range for banding should start from row 2 to avoid overwriting the custom header style.
+      const dataRange = sheet.getRange(2, 1, sheet.getMaxRows() - 1, sheet.getMaxColumns());
       // Remove existing banding first to ensure consistency.
       sheet.getBandings().forEach(banding => banding.remove());
-      // Apply new banding, including the header row.
-      dataRange.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, true, false);
+      // Apply new banding, excluding the header row, which is styled separately.
+      dataRange.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, false, false);
     }
 
     // Specific alignment adjustments (UX improvement). Center-aligning non-name columns.
