@@ -100,7 +100,7 @@ function onOpen() {
 function forceUpdateSheets(isAutomatic = false) {
   try {
     // Force update formulas (true parameter) clears the ranges first to prevent #REF errors and apply latest logic.
-    applyFormulas(true);
+    applyFormulas(true, isAutomatic);
     formatAllSheets();
     applyDataValidations();
     applyAllConditionalFormatting();
@@ -295,7 +295,7 @@ function insertSampleData() {
  * @param {boolean} [forceUpdate=false] - If true, clears existing formula ranges before reapplying. 
  *                                        This is crucial for preventing #REF errors when array formulas cannot expand.
  */
-function applyFormulas(forceUpdate = false) {
+function applyFormulas(forceUpdate = false, isAutomatic = false) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   if (!ss) return;
 
@@ -316,8 +316,9 @@ function applyFormulas(forceUpdate = false) {
     const participantFormula = `=SORT(UNIQUE(FILTER({${CONFIG.SHEET_NAMES.DEBATERS}!A2:A; ${CONFIG.SHEET_NAMES.JUDGES}!A2:A}, {${CONFIG.SHEET_NAMES.DEBATERS}!A2:A; ${CONFIG.SHEET_NAMES.JUDGES}!A2:A}<>"")))`;
     availabilitySheet.getRange('A2').setFormula(participantFormula);
 
-    // Initialize default RSVP status (only during initial setup or if forced/empty).
-    if (forceUpdate || availabilitySheet.getRange('B2').getValue() === "") {
+    // Initialize default RSVP status. This should only run on a MANUAL refresh or if the column is empty.
+    // It should NOT run during the automatic onOpen trigger if data already exists.
+    if ((forceUpdate && !isAutomatic) || availabilitySheet.getRange('B2').getValue() === "") {
       SpreadsheetApp.flush(); // Ensure the participant formula populates before setting defaults.
       setRsvpDefaults(availabilitySheet);
     }
